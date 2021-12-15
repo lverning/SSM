@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.smbms.dao.BookDao">
+    <select id="getBookList" parameterType="User" resultMap="Type">
+        select b.*, t.*
+        from book b,
+        types t
+        <where>
+            b.bookType = t.id
+            <choose>
+                <when test="interest > 0">
+                    and t.id = #{interest}
+                </when>
+                <when test="bookName != null and bookName != ''">
+                    and bookName like concat('%' , #{bookName} ,'%')
+                </when>
+                <when test="bookAuthor != null and bookAuthor != ''">
+                    and bookAuthor like concat('%' , #{bookAuthor} ,'%')
+                </when>
+                <otherwise>
+                    and b.id > 0
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+    <resultMap id="Type" type="Book" autoMapping="true">
+        <result property="type" column="type"/>
+    </resultMap>
+    <select id="getBookById" resultType="Book" resultMap="Type">
+        select b.*, t.*
+        from book b,
+             types t
+        where b.bookType = t.id
+          and b.id = #{id}
+    </select>
+    <delete id="deleteBook">
+        delete
+        from book
+        where id in
+        <foreach collection="ids" item="ids" open="(" close=")" separator=",">
+            #{ids}
+        </foreach>
+    </delete>
+    <insert id="addBook" parameterType="User">
+        insert into book (bookName, bookAuthor, bookType, bookPrice, bookDate, bookDetails)
+        values (#{bookName}, #{bookAuthor}, #{bookType}, #{bookPrice}, #{bookDate}, #{bookDetails});
+    </insert>
+    <select id="getBookByType" parameterType="Book" resultType="Book">
+        select b.*, t.*
+        from book b,
+             types t
+        where b.bookType = t.id
+          and t.id = #{interest};
+    </select>
+    <update id="updateBook" parameterType="Book">
+        update book
+        set bookName    = #{bookName},
+            bookAuthor  = #{bookAuthor},
+            bookType    = #{bookType},
+            bookPrice   = #{bookPrice},
+            bookDate    = #{bookDate},
+            bookDetails = #{bookDetails}
+        where id = #{id};
+    </update>
+</mapper>
